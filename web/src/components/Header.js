@@ -181,7 +181,16 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
 
   const handleTabClick = (tab) => {
     setActiveTab(tab.name);
-    navigate(tab.path);
+    const category = tabToCategory[tab.name];
+    navigate(`/tabindex?category=${category}`);
+  };
+
+  // Map tabs to categories for URL parameters
+  const tabToCategory = {
+    'New': 'featured',
+    'Just Sold': 'just-sold',
+    'Popular': 'popular',
+    'Exclusive': 'exclusive'
   };
 
   return (

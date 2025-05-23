@@ -326,10 +326,10 @@ function Profile() {
     setActiveTab(tabName);
     // Map tab names to their corresponding main page sections
     const tabToPath = {
-      'New': '/collections?category=featured',
-      'Just Sold': '/collections?category=just-sold',
-      'Popular': '/collections?category=popular',
-      'Exclusive': '/collections?category=exclusive'
+      'New': '/tabindex?category=featured',
+      'Just Sold': '/tabindex?category=just-sold',
+      'Popular': '/tabindex?category=popular',
+      'Exclusive': '/tabindex?category=exclusive'
     };
     
     if (tabToPath[tabName]) {

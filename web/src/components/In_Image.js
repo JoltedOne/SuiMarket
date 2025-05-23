@@ -13,7 +13,8 @@ function In_Image({
   currentTheme,
   className = '',
   collectionId = null,
-  onImageClick = null
+  onImageClick = null,
+  itemId = null
 }) {
   const navigate = useNavigate();
   const cardStyle = `bg-transparent overflow-hidden font-['Helvetica'] flex flex-col ${currentTheme.cardHover} ${className}`;
@@ -30,25 +31,29 @@ function In_Image({
     e.preventDefault();
     e.stopPropagation();
     if (onImageClick) {
-      onImageClick(imageId);
+      onImageClick(itemId || imageId);
     } else if (collectionId) {
-      navigate(`/collections/${collectionId}/item/${imageId}`);
+      navigate(`/collections/${collectionId}/item/${itemId || imageId}`);
     }
   };
 
-  const CardWrapper = isLink ? Link : 'div';
-  const wrapperProps = isLink ? { to: linkTo } : { onClick: handleClick };
+  const uniqueImageId = `image-${collectionId}-${itemId || imageId}`;
 
   return (
-    <CardWrapper 
-      {...wrapperProps} 
-      className={`${cardStyle} ${(isLink || onImageClick || collectionId) ? 'cursor-pointer hover:scale-105 transition-transform duration-300' : ''}`}
+    <div 
+      onClick={handleClick}
+      className={`${cardStyle} ${(onImageClick || collectionId) ? 'cursor-pointer hover:scale-105 transition-transform duration-300' : ''}`}
+      data-image-id={uniqueImageId}
+      data-collection-id={collectionId}
+      data-item-id={itemId || imageId}
     >
       <div className={imageContainerStyle}>
         <img 
+          id={uniqueImageId}
           src={`https://picsum.photos/seed/${imageId}/800/600`}
           alt={title}
           className={imageStyle}
+          loading="lazy"
         />
       </div>
       <div className={infoContainerStyle}>
@@ -63,6 +68,7 @@ function In_Image({
                 src={`https://picsum.photos/seed/profile${creatorImageId}/100/100`}
                 alt={creator}
                 className={profileImageStyle}
+                loading="lazy"
               />
               <span className="truncate">{creator}</span>
             </div>
@@ -72,7 +78,7 @@ function In_Image({
           </div>
         </div>
       </div>
-    </CardWrapper>
+    </div>
   );
 }
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { WalletProvider } from '@suiet/wallet-kit';
 import '@suiet/wallet-kit/style.css';
 import './suiet-wallet-kit-custom.css';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Profile from './pages/Profile';
 import PersonalMarket from './pages/PersonalMarket';
 import AppContent from './components/AppContent';
@@ -46,12 +46,13 @@ function App() {
       <BrowserRouter>
         <Layout>
           <Routes>
-            <Route path="/" element={<AppContent />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/market/:collectionId" element={<PersonalMarket />} />
-            <Route path="/collections/:collectionId" element={<Collections />} />
-            <Route path="/collections/:collectionId/item/:itemId" element={<ImageDetail />} />
+            <Route path="/" element={<Navigate to="/tabindex?category=featured" replace />} />
             <Route path="/tabindex" element={<TabIndex />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/market/:id" element={<PersonalMarket />} />
+            <Route path="/collections/:collectionId" element={<Collections />} />
+            <Route path="/image-detail/:collectionId/:itemId" element={<ImageDetail />} />
+            <Route path="/collections/:collectionId/item/:itemId" element={<ImageDetail />} />
           </Routes>
         </Layout>
       </BrowserRouter>
