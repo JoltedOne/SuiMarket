@@ -51,7 +51,7 @@ function App() {
             <Route path="/market/:collectionId" element={<PersonalMarket />} />
             <Route path="/collections/:collectionId" element={<Collections />} />
             <Route path="/collections/:collectionId/item/:itemId" element={<ImageDetail />} />
-            <Route path="/collections" element={<TabIndex />} />
+            <Route path="/tabindex" element={<TabIndex />} />
           </Routes>
         </Layout>
       </BrowserRouter>

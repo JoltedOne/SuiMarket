@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet, ConnectButton } from '@suiet/wallet-kit';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { JsonRpcProvider, Connection } from '@mysten/sui.js';
 
 function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme }) {
@@ -20,12 +20,13 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
     isCustomizing: false
   });
   const [walletBalance, setWalletBalance] = useState('0.00');
+  const navigate = useNavigate();
 
   const tabs = [
-    { name: 'New', path: '/collections', category: 'featured' },
-    { name: 'Just Sold', path: '/collections', category: 'popular' },
-    { name: 'Popular', path: '/collections', category: 'popular' },
-    { name: 'Exclusive', path: '/collections', category: 'exclusive' }
+    { name: 'New', path: '/tabindex' },
+    { name: 'Just Sold', path: '/tabindex' },
+    { name: 'Popular', path: '/tabindex' },
+    { name: 'Exclusive', path: '/tabindex' }
   ];
 
   // Function to abbreviate wallet address
@@ -123,15 +124,21 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
   }, [isDragging]);
 
   // Add analytics rendering function
-  const renderAnalyticsCard = (title, value, change) => (
-    <div className={`${currentTheme.analyticsCard} p-6 rounded-lg mb-4`}>
-      <h3 className={`text-lg font-semibold mb-2 ${currentTheme.text}`}>{title}</h3>
-      <div className={`text-2xl font-bold mb-2 ${currentTheme.analyticsValue}`}>{value}</div>
-      <div className={`text-sm ${change >= 0 ? currentTheme.analyticsChange.positive : currentTheme.analyticsChange.negative}`}>
-        {change >= 0 ? '+' : ''}{change}%
+  const renderAnalyticsCard = (title, value, change) => {
+    // Default colors for analytics change if not provided in theme
+    const positiveColor = currentTheme.analyticsChange?.positive || (isDarkMode ? 'text-[#00CC6A]' : 'text-[#006633]');
+    const negativeColor = currentTheme.analyticsChange?.negative || 'text-[#FF4444]';
+    
+    return (
+      <div className={`${currentTheme.analyticsCard} p-6 rounded-lg mb-4`}>
+        <h3 className={`text-lg font-semibold mb-2 ${currentTheme.text}`}>{title}</h3>
+        <div className={`text-2xl font-bold mb-2 ${currentTheme.analyticsValue}`}>{value}</div>
+        <div className={`text-sm ${change >= 0 ? positiveColor : negativeColor}`}>
+          {change >= 0 ? '+' : ''}{change}%
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderAnalytics = (tab) => {
     switch(tab) {
@@ -174,16 +181,7 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
 
   const handleTabClick = (tab) => {
     setActiveTab(tab.name);
-    const searchParams = new URLSearchParams(window.location.search);
-    
-    if (tab.category) {
-      searchParams.set('category', tab.category);
-    } else {
-      searchParams.delete('category');
-    }
-    
-    const newPath = `${tab.path}${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
-    window.history.pushState({}, '', newPath);
+    navigate(tab.path);
   };
 
   return (

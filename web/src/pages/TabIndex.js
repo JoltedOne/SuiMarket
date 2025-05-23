@@ -1,229 +1,215 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useWallet } from '@suiet/wallet-kit';
 import Header from '../components/Header';
+import { JsonRpcProvider, Connection } from '@mysten/sui.js';
 
-// Sample data for collections and sections
-const collectionsData = {
-  featured: [
-    { id: 1, name: 'Cosmic Dreams #1', creator: 'Luna Digital', image: 'new1', type: '1/1', price: '50 SUI', category: 'featured' },
-    { id: 2, name: 'Digital Oasis', creator: 'Pixel Dreams', image: 'new2', type: 'Edition 1/10', price: '75 SUI', category: 'featured' },
-    { id: 3, name: 'Neon Nights', creator: 'Neon Artist', image: 'new3', type: '1/1', price: '45 SUI', category: 'featured' }
+// Add font imports
+const fonts = `
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&display=swap');
+`;
+
+// Tab-specific content data
+const tabContent = {
+  'New': [
+    { id: 'new1', title: 'Cosmic Dreams #1', price: '50 SUI', creator: 'Luna Digital', creatorImage: '1', type: '1/1', image: 'new1' },
+    { id: 'new2', title: 'Digital Oasis', price: '75 SUI', creator: 'Pixel Dreams', creatorImage: '2', type: 'Edition 1/10', image: 'new2' },
+    { id: 'new3', title: 'Neon Nights', price: '45 SUI', creator: 'Neon Artist', creatorImage: '3', type: '1/1', image: 'new3' },
+    { id: 'new4', title: 'Quantum Echoes', price: '65 SUI', creator: 'Quantum Creator', creatorImage: '4', type: 'Edition 2/10', image: 'new4' },
+    { id: 'new5', title: 'Digital Serenity', price: '55 SUI', creator: 'Zen Digital', creatorImage: '5', type: '1/1', image: 'new5' },
+    { id: 'new6', title: 'Cyber Dreams', price: '85 SUI', creator: 'Cyber Artist', creatorImage: '6', type: 'Edition 3/10', image: 'new6' }
   ],
-  popular: [
-    { id: 4, name: 'Quantum Echoes', creator: 'Quantum Creator', image: 'new4', type: 'Edition 2/10', price: '65 SUI', category: 'popular' },
-    { id: 5, name: 'Digital Serenity', creator: 'Zen Digital', image: 'new5', type: '1/1', price: '55 SUI', category: 'popular' },
-    { id: 6, name: 'Cyber Dreams', creator: 'Cyber Artist', image: 'new6', type: 'Edition 3/10', price: '85 SUI', category: 'popular' }
+  'Just Sold': [
+    { id: 'sold1', title: 'Mystic Mountains', price: 'Sold for 120 SUI', creator: 'Mountain Dreams', creatorImage: '1', type: '1/1', image: 'sold1' },
+    { id: 'sold2', title: 'Ocean Whispers', price: 'Sold for 95 SUI', creator: 'Deep Blue', creatorImage: '2', type: 'Edition 1/5', image: 'sold2' },
+    { id: 'sold3', title: 'Urban Dreams', price: 'Sold for 150 SUI', creator: 'City Artist', creatorImage: '3', type: '1/1', image: 'sold3' },
+    { id: 'sold4', title: 'Digital Dynasty', price: 'Sold for 200 SUI', creator: 'Digital King', creatorImage: '4', type: 'Edition 2/5', image: 'sold4' },
+    { id: 'sold5', title: 'Abstract Reality', price: 'Sold for 180 SUI', creator: 'Abstract Mind', creatorImage: '5', type: '1/1', image: 'sold5' },
+    { id: 'sold6', title: 'Future Visions', price: 'Sold for 160 SUI', creator: 'Future Artist', creatorImage: '6', type: 'Edition 3/5', image: 'sold6' }
   ],
-  exclusive: [
-    { id: 7, name: 'Genesis Collection', creator: 'Genesis Artist', image: 'excl1', type: '1/1', price: '500 SUI', category: 'exclusive' },
-    { id: 8, name: 'Royal Edition', creator: 'Royal Creator', image: 'excl2', type: 'Edition 1/3', price: '450 SUI', category: 'exclusive' },
-    { id: 9, name: 'Masterpiece Series', creator: 'Master Artist', image: 'excl3', type: '1/1', price: '600 SUI', category: 'exclusive' }
+  'Popular': [
+    { id: 'pop1', title: 'Digital Dynasty', price: '200 SUI', creator: 'Digital King', creatorImage: '4', type: '1/1', image: 'pop1' },
+    { id: 'pop2', title: 'Abstract Reality', price: '180 SUI', creator: 'Abstract Mind', creatorImage: '5', type: 'Edition 1/20', image: 'pop2' },
+    { id: 'pop3', title: 'Future Visions', price: '160 SUI', creator: 'Future Artist', creatorImage: '6', type: '1/1', image: 'pop3' },
+    { id: 'pop4', title: 'Cosmic Harmony', price: '220 SUI', creator: 'Cosmic Artist', creatorImage: '1', type: 'Edition 2/20', image: 'pop4' },
+    { id: 'pop5', title: 'Digital Dreams', price: '190 SUI', creator: 'Dream Weaver', creatorImage: '2', type: '1/1', image: 'pop5' },
+    { id: 'pop6', title: 'Neon Pulse', price: '170 SUI', creator: 'Neon Pulse', creatorImage: '3', type: 'Edition 3/20', image: 'pop6' }
+  ],
+  'Exclusive': [
+    { id: 'excl1', title: 'Genesis Collection', price: '500 SUI', creator: 'Genesis Artist', creatorImage: '1', type: '1/1', image: 'excl1' },
+    { id: 'excl2', title: 'Royal Edition', price: '450 SUI', creator: 'Royal Creator', creatorImage: '2', type: 'Edition 1/3', image: 'excl2' },
+    { id: 'excl3', title: 'Masterpiece Series', price: '600 SUI', creator: 'Master Artist', creatorImage: '3', type: '1/1', image: 'excl3' },
+    { id: 'excl4', title: 'Legacy Collection', price: '550 SUI', creator: 'Legacy Artist', creatorImage: '4', type: 'Edition 2/3', image: 'excl4' },
+    { id: 'excl5', title: 'Diamond Edition', price: '650 SUI', creator: 'Diamond Creator', creatorImage: '5', type: '1/1', image: 'excl5' },
+    { id: 'excl6', title: 'Platinum Series', price: '580 SUI', creator: 'Platinum Artist', creatorImage: '6', type: 'Edition 3/3', image: 'excl6' }
   ]
 };
 
 function TabIndex() {
+  const { account } = useWallet();
   const navigate = useNavigate();
   const location = useLocation();
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [activeTab, setActiveTab] = useState('New');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('featured');
 
-  // Map category to tab name
-  const categoryToTab = {
-    'featured': 'New',
-    'popular': 'Popular',
-    'exclusive': 'Exclusive'
-  };
-
-  // Map tab name to category
+  // Map tabs to categories for URL parameters
   const tabToCategory = {
     'New': 'featured',
+    'Just Sold': 'just-sold',
     'Popular': 'popular',
     'Exclusive': 'exclusive'
   };
 
-  // Parse URL query parameters and update tab state
+  // Update URL when tab changes
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    const category = tabToCategory[tab];
+    navigate(`/tabindex?category=${category}`, { replace: true });
+  };
+
+  // Sync tab with URL parameters on mount and URL changes
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const category = searchParams.get('category');
     
-    if (category && categoryToTab[category]) {
-      setSelectedCategory(category);
-      setActiveTab(categoryToTab[category]);
-    } else {
-      // Default to 'New' tab if no category is specified
-      setSelectedCategory('featured');
-      setActiveTab('New');
-      navigate('/collections?category=featured');
+    // Find tab based on category
+    const tab = Object.entries(tabToCategory).find(([_, cat]) => cat === category)?.[0];
+    if (tab) {
+      setActiveTab(tab);
     }
-  }, [location.search, navigate]);
-
-  // Update URL when tab changes
-  useEffect(() => {
-    const category = tabToCategory[activeTab];
-    if (category) {
-      navigate(`/collections?category=${category}`);
-    }
-  }, [activeTab, navigate]);
-
-  // Update URL when category changes
-  const handleCategoryChange = (category) => {
-    setSelectedCategory(category);
-    setActiveTab(categoryToTab[category]);
-  };
+  }, [location.search]);
 
   // Theme styles
   const themeStyles = {
     dark: {
       background: 'bg-[#121212]',
       text: 'text-[#E0E0E0]',
+      header: 'bg-[#121212] border-b border-[#444444]',
       card: 'bg-[#121212] border border-[#444444]',
       cardHover: 'hover:shadow-xl hover:shadow-[#00FF85]/10',
       border: 'border-[#444444]',
+      imageBorder: 'border-8 border-[#1A1A1A]',
       tabActive: 'bg-[#444444] text-[#E0E0E0] rounded-lg',
       tabInactive: 'text-[#B0B0B0] hover:text-[#E0E0E0] hover:bg-[#444444]/50 rounded-lg',
       description: 'text-[#B0B0B0]',
       price: 'text-[#00FF85]',
-      searchInput: 'bg-[#1A1A1A] border-[#444444] text-[#E0E0E0]',
-      categoryButton: 'bg-[#1A1A1A] hover:bg-[#444444] text-[#E0E0E0]',
-      categoryButtonActive: 'bg-[#00FF85] text-[#121212]'
+      walletBanner: 'bg-[#121212] border border-[#444444]',
+      button: 'bg-[#00FF85] hover:bg-[#00FF85]/90 text-[#121212] font-semibold',
+      profileDropdown: 'bg-[#121212] border-[#444444]',
+      analyticsCard: 'bg-[#121212] border border-[#444444]',
+      analyticsValue: 'text-[#00FF85]',
+      analyticsChange: {
+        positive: 'text-[#00CC6A]',
+        negative: 'text-[#FF4444]'
+      }
     },
     light: {
       background: 'bg-[#e5e8f0]',
       text: 'text-[#333333]',
+      header: 'bg-[#e5e8f0]',
       card: 'bg-[#e5e8f0] border border-[#333333]',
       cardHover: 'hover:shadow-xl hover:shadow-[#EB750E]/20',
       border: 'border-[#333333]',
+      imageBorder: 'border-8 border-[#d2d4dc]',
       tabActive: 'bg-[#444444] text-[#e5e8f0] rounded-lg',
       tabInactive: 'text-[#888888] hover:text-[#333333] hover:bg-[#B3B3B3]/50 rounded-lg',
       description: 'text-[#888888]',
       price: 'text-[#EB750E]',
-      searchInput: 'bg-white border-[#333333] text-[#333333]',
-      categoryButton: 'bg-white hover:bg-[#EB750E]/10 text-[#333333]',
-      categoryButtonActive: 'bg-[#EB750E] text-white'
+      walletBanner: 'bg-[#e5e8f0] border border-[#333333]',
+      button: 'bg-[#EB750E] hover:bg-[#EB750E]/90 text-[#e5e8f0] font-semibold',
+      profileDropdown: 'bg-[#e5e8f0] border-[#333333]',
+      analyticsCard: 'bg-[#e5e8f0] border border-[#333333]',
+      analyticsValue: 'text-[#EB750E]',
+      analyticsChange: {
+        positive: 'text-[#006633]',
+        negative: 'text-[#FF4444]'
+      }
     }
   };
 
   const currentTheme = isDarkMode ? themeStyles.dark : themeStyles.light;
 
-  const categories = [
-    { id: 'featured', name: 'New' },
-    { id: 'popular', name: 'Popular' },
-    { id: 'exclusive', name: 'Exclusive' }
-  ];
+  // Add font styles to document
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = fonts;
+    document.head.appendChild(style);
 
-  const handleCollectionClick = (collectionId) => {
-    navigate(`/collections/${collectionId}`);
-  };
+    document.documentElement.classList.toggle('dark', isDarkMode);
+    document.body.classList.toggle('theme-dark', isDarkMode);
+    document.body.classList.toggle('theme-light', !isDarkMode);
+    document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
 
-  const filteredCollections = () => {
-    let collections = collectionsData[selectedCategory] || [];
-    
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      collections = collections.filter(collection => 
-        collection.name.toLowerCase().includes(query) ||
-        collection.creator.toLowerCase().includes(query)
-      );
-    }
+    return () => {
+      document.head.removeChild(style);
+      document.body.classList.remove('theme-dark', 'theme-light');
+      document.body.removeAttribute('data-theme');
+    };
+  }, [isDarkMode]);
 
-    return collections;
+  const renderCard = (item) => {
+    const cardStyle = `bg-transparent overflow-hidden font-['Helvetica'] flex flex-col`;
+    const imageContainerStyle = `w-full border-[25px] ${currentTheme.imageBorder} overflow-hidden`;
+    const imageStyle = "w-full h-[400px] object-cover";
+    const infoContainerStyle = `p-6 flex flex-col justify-between`;
+    const titleStyle = `text-xl font-bold ${currentTheme.text} mb-4 tracking-wide`;
+    const priceStyle = `text-xs font-semibold ${currentTheme.text} tracking-wide m-[10px]`;
+    const creatorStyle = `flex items-center space-x-3 ${currentTheme.description} text-sm tracking-wide`;
+    const profileImageStyle = "w-8 h-8 object-cover border-2 border-[#444444]";
+
+    return (
+      <div key={item.id} className={cardStyle}>
+        <div className={imageContainerStyle}>
+          <img 
+            src={`https://picsum.photos/seed/${item.image}/800/600`} 
+            alt={item.title}
+            className={imageStyle}
+          />
+        </div>
+        <div className={infoContainerStyle}>
+          <div className="flex justify-between items-start">
+            <div className="flex-grow pr-2">
+              <h3 className={titleStyle}>{item.title}</h3>
+              <div className={`text-sm ${item.type === '1/1' ? 'text-[#00CC6A]' : 'text-[#00994D]'} mb-2`}>
+                {item.type}
+              </div>
+              <div className={creatorStyle}>
+                <img 
+                  src={`https://picsum.photos/seed/profile${item.creatorImage}/100/100`}
+                  alt={item.creator}
+                  className={profileImageStyle}
+                />
+                <span className="truncate">{item.creator}</span>
+              </div>
+            </div>
+            <div className={priceStyle}>
+              {item.price}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className={`min-h-screen flex flex-col ${currentTheme.background} ${currentTheme.text} transition-colors duration-300`}>
+    <div className={`min-h-screen ${currentTheme.background} ${currentTheme.text} transition-colors duration-300`}>
+      {/* Header Component */}
       <Header 
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
         isDarkMode={isDarkMode}
         toggleTheme={() => setIsDarkMode(!isDarkMode)}
         currentTheme={currentTheme}
       />
 
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-['Helvetica'] mt-[140px]">
-        {/* Search and Filter Section */}
-        <div className={`${currentTheme.card} rounded-lg p-6 mb-8`}>
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            <div className="w-full md:w-96">
-              <input
-                type="text"
-                placeholder={`Search ${activeTab.toLowerCase()} collections...`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={`w-full px-4 py-2 rounded-lg border ${currentTheme.searchInput} focus:outline-none focus:ring-2 focus:ring-[#00FF85]`}
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => handleCategoryChange(category.id)}
-                  className={`px-4 py-2 rounded-lg transition-colors duration-300 ${
-                    selectedCategory === category.id
-                      ? currentTheme.categoryButtonActive
-                      : currentTheme.categoryButton
-                  }`}
-                >
-                  {category.name}
-                </button>
-              ))}
-            </div>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-['Helvetica'] mt-[140px]">
+        <div className="mt-6 bg-transparent backdrop-blur-sm p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {tabContent[activeTab]?.map(item => renderCard(item))}
           </div>
         </div>
-
-        {/* Collections Grid with Category Title */}
-        <div className="mb-6">
-          <h2 className={`text-2xl font-bold ${currentTheme.text}`}>
-            {activeTab} Collections
-          </h2>
-          <p className={`text-sm ${currentTheme.description} mt-1`}>
-            {filteredCollections().length} collections found
-          </p>
-        </div>
-
-        {/* Collections Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredCollections().map((collection) => (
-            <div
-              key={collection.id}
-              onClick={() => handleCollectionClick(collection.id)}
-              className={`${currentTheme.card} rounded-lg overflow-hidden cursor-pointer transition-transform duration-300 hover:scale-105 ${currentTheme.cardHover}`}
-            >
-              <div className="relative">
-                <img
-                  src={`https://picsum.photos/seed/${collection.image}/800/600`}
-                  alt={collection.name}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
-                  {collection.type}
-                </div>
-              </div>
-              <div className="p-4">
-                <h3 className={`text-lg font-bold ${currentTheme.text} mb-2`}>{collection.name}</h3>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <img
-                      src={`https://picsum.photos/seed/creator${collection.id}/100/100`}
-                      alt={collection.creator}
-                      className="w-6 h-6 rounded-full"
-                    />
-                    <span className={`text-sm ${currentTheme.description}`}>{collection.creator}</span>
-                  </div>
-                  <span className={`text-sm font-semibold ${currentTheme.price}`}>{collection.price}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Empty State */}
-        {filteredCollections().length === 0 && (
-          <div className="text-center py-12">
-            <p className={`text-lg ${currentTheme.description}`}>No collections found matching your criteria.</p>
-          </div>
-        )}
       </main>
     </div>
   );

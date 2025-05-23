@@ -58,7 +58,7 @@ function Profile() {
       background: 'bg-[#121212]',
       text: 'text-[#E0E0E0]',
       header: 'bg-[#121212] border-b border-[#444444]',
-      card: 'bg-[#121212] border border-[#444444]',
+      card: 'bg-[#121212] shadow-lg shadow-[#000000]/30',
       cardHover: 'hover:shadow-xl hover:shadow-[#00FF85]/10',
       border: 'border-[#444444]',
       imageBorder: 'border-8 border-[#1A1A1A]',
@@ -66,10 +66,10 @@ function Profile() {
       tabInactive: 'text-[#B0B0B0] hover:text-[#E0E0E0] hover:bg-[#444444]/50 rounded-lg',
       description: 'text-[#B0B0B0]',
       price: 'text-[#00FF85]',
-      walletBanner: 'bg-[#121212] border border-[#444444]',
+      walletBanner: 'bg-[#121212] shadow-lg shadow-[#000000]/30',
       button: 'bg-[#00FF85] hover:bg-[#00FF85]/90 text-[#121212] font-semibold',
       profileDropdown: 'bg-[#121212] border-[#444444]',
-      analyticsCard: 'bg-[#121212] border border-[#444444]',
+      analyticsCard: 'bg-[#121212] shadow-lg shadow-[#000000]/30',
       analyticsValue: 'text-[#00FF85]',
       socialIcon: 'text-gray-400 hover:text-gray-300 transition-colors duration-200',
       analyticsChange: {
@@ -81,7 +81,7 @@ function Profile() {
       background: 'bg-[#e5e8f0]',
       text: 'text-[#333333]',
       header: 'bg-[#e5e8f0]',
-      card: 'bg-[#e5e8f0] border border-[#333333]',
+      card: 'bg-[#e5e8f0] shadow-lg shadow-[#000000]/10',
       cardHover: 'hover:shadow-xl hover:shadow-[#EB750E]/20',
       border: 'border-[#333333]',
       imageBorder: 'border-8 border-[#d2d4dc]',
@@ -89,10 +89,10 @@ function Profile() {
       tabInactive: 'text-[#888888] hover:text-[#333333] hover:bg-[#B3B3B3]/50 rounded-lg',
       description: 'text-[#888888]',
       price: 'text-[#EB750E]',
-      walletBanner: 'bg-[#e5e8f0] border border-[#333333]',
+      walletBanner: 'bg-[#e5e8f0] shadow-lg shadow-[#000000]/10',
       button: 'bg-[#EB750E] hover:bg-[#EB750E]/90 text-[#e5e8f0] font-semibold',
       profileDropdown: 'bg-[#e5e8f0] border-[#333333]',
-      analyticsCard: 'bg-[#e5e8f0] border border-[#333333]',
+      analyticsCard: 'bg-[#e5e8f0] shadow-lg shadow-[#000000]/10',
       analyticsValue: 'text-[#EB750E]',
       socialIcon: 'text-gray-500 hover:text-gray-600 transition-colors duration-200',
       analyticsChange: {
@@ -248,14 +248,100 @@ function Profile() {
   };
 
   const handleCollectionClick = (collectionId) => {
-    navigate(`/collections/${collectionId}`);
+    // Navigate to the collection detail page
+    navigate(`/collections/${collectionId}`, { replace: true });
+  };
+
+  // Update collections data to match the main page format
+  const collectionsData = {
+    1: {
+      name: 'Cosmic Dreams #1',
+      creator: 'Luna Digital',
+      price: '50 SUI',
+      image: 'new1',
+      type: '1/1',
+      date: '2024-03-15',
+      category: 'featured'
+    },
+    2: {
+      name: 'Digital Oasis',
+      creator: 'Pixel Dreams',
+      price: '75 SUI',
+      image: 'new2',
+      type: 'Edition 1/10',
+      date: '2024-03-10',
+      category: 'popular'
+    },
+    3: {
+      name: 'Neon Nights',
+      creator: 'Neon Artist',
+      price: '45 SUI',
+      image: 'new3',
+      type: '1/1',
+      date: '2024-03-05',
+      category: 'exclusive'
+    },
+    4: {
+      name: 'Quantum Echoes',
+      creator: 'Quantum Creator',
+      price: '65 SUI',
+      image: 'new4',
+      type: 'Edition 2/10',
+      date: '2024-03-01',
+      category: 'featured'
+    },
+    5: {
+      name: 'Digital Serenity',
+      creator: 'Zen Digital',
+      price: '55 SUI',
+      image: 'new5',
+      type: '1/1',
+      date: '2024-02-28',
+      category: 'popular'
+    },
+    6: {
+      name: 'Cyber Dreams',
+      creator: 'Cyber Artist',
+      price: '85 SUI',
+      image: 'new6',
+      type: 'Edition 3/10',
+      date: '2024-02-25',
+      category: 'exclusive'
+    }
+  };
+
+  // Update userProfile collections to use the collectionsData
+  useEffect(() => {
+    setUserProfile(prev => ({
+      ...prev,
+      collections: Object.entries(collectionsData).map(([id, data]) => ({
+        id: parseInt(id),
+        ...data
+      }))
+    }));
+  }, []);
+
+  // Add this function to handle tab clicks
+  const handleTabClick = (tabName) => {
+    setActiveTab(tabName);
+    // Map tab names to their corresponding main page sections
+    const tabToPath = {
+      'New': '/collections?category=featured',
+      'Just Sold': '/collections?category=just-sold',
+      'Popular': '/collections?category=popular',
+      'Exclusive': '/collections?category=exclusive'
+    };
+    
+    if (tabToPath[tabName]) {
+      navigate(tabToPath[tabName]);
+    }
   };
 
   return (
     <div className={`min-h-screen flex flex-col ${currentTheme.background} ${currentTheme.text} transition-colors duration-300`}>
       <Header 
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabClick}
         isDarkMode={isDarkMode}
         toggleTheme={toggleTheme}
         currentTheme={currentTheme}
@@ -263,7 +349,7 @@ function Profile() {
 
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-['Helvetica'] mt-[140px]">
         {/* Profile Banner */}
-        <div className={`relative rounded-lg overflow-hidden mb-8 ${currentTheme.card}`}>
+        <div className={`relative rounded-lg overflow-hidden mb-8 ${currentTheme.card} ${currentTheme.walletBanner}`}>
           <img 
             src={`https://picsum.photos/seed/${userProfile.bannerImage}/1200/300`}
             alt="Profile Banner"
@@ -499,24 +585,29 @@ function Profile() {
                 {sortCollections(userProfile.collections).map((collection) => (
                   <div 
                     key={collection.id} 
-                    className={`rounded-lg overflow-hidden ${currentTheme.card} cursor-pointer transition-transform duration-300 hover:scale-105`}
+                    className={`rounded-lg overflow-hidden ${currentTheme.card} ${currentTheme.cardHover} cursor-pointer transition-all duration-300 hover:scale-105`}
                     onClick={() => handleCollectionClick(collection.id)}
                   >
-                    <img 
-                      src={`https://picsum.photos/seed/${collection.image}/400/300`}
-                      alt={collection.name}
-                      className="w-full h-48 object-cover"
-                    />
+                    <div className="relative">
+                      <img 
+                        src={`https://picsum.photos/seed/${collection.image}/400/300`}
+                        alt={collection.name}
+                        className="w-full h-48 object-cover"
+                      />
+                      <div className={`absolute top-2 right-2 px-2 py-1 rounded-lg text-xs font-semibold ${
+                        collection.type === '1/1' ? 'bg-[#00CC6A]/20 text-[#00CC6A]' : 'bg-[#00994D]/20 text-[#00994D]'
+                      }`}>
+                        {collection.type}
+                      </div>
+                    </div>
                     <div className="p-4">
-                      <h3 className="font-semibold mb-2">{collection.name}</h3>
+                      <h3 className="font-semibold mb-2 text-lg">{collection.name}</h3>
                       <div className="flex justify-between items-center">
                         <div className="text-sm opacity-80">
                           <div>Creator: {collection.creator}</div>
-                          <div className={`${collection.type === '1/1' ? 'text-[#00CC6A]' : 'text-[#00994D]'}`}>
-                            {collection.type}
-                          </div>
+                          <div className="text-xs mt-1">Added: {new Date(collection.date).toLocaleDateString()}</div>
                         </div>
-                        <div className={`text-sm font-semibold ${currentTheme.price}`}>
+                        <div className={`text-lg font-semibold ${currentTheme.price}`}>
                           {collection.price}
                         </div>
                       </div>

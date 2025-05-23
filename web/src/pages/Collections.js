@@ -105,11 +105,81 @@ function Collections() {
       profileImage: 'collection-profile-1',
       items: [
         { id: 1, name: 'Cosmic Dreams #1', price: '50 SUI', creator: 'Luna Digital', image: 'new1', type: '1/1', date: '2024-03-15' },
-        { id: 2, name: 'Digital Oasis', price: '75 SUI', creator: 'Pixel Dreams', image: 'new2', type: 'Edition 1/10', date: '2024-03-10' },
-        { id: 3, name: 'Neon Nights', price: '45 SUI', creator: 'Neon Artist', image: 'new3', type: '1/1', date: '2024-03-05' },
-        { id: 4, name: 'Quantum Echoes', price: '65 SUI', creator: 'Quantum Creator', image: 'new4', type: 'Edition 2/10', date: '2024-03-01' },
-        { id: 5, name: 'Digital Serenity', price: '55 SUI', creator: 'Zen Digital', image: 'new5', type: '1/1', date: '2024-02-28' },
-        { id: 6, name: 'Cyber Dreams', price: '85 SUI', creator: 'Cyber Artist', image: 'new6', type: 'Edition 3/10', date: '2024-02-25' }
+        { id: 2, name: 'Cosmic Dreams #2', price: '55 SUI', creator: 'Luna Digital', image: 'new1-2', type: '1/1', date: '2024-03-14' },
+        { id: 3, name: 'Cosmic Dreams #3', price: '60 SUI', creator: 'Luna Digital', image: 'new1-3', type: '1/1', date: '2024-03-13' },
+        { id: 4, name: 'Cosmic Dreams #4', price: '65 SUI', creator: 'Luna Digital', image: 'new1-4', type: '1/1', date: '2024-03-12' },
+        { id: 5, name: 'Cosmic Dreams #5', price: '70 SUI', creator: 'Luna Digital', image: 'new1-5', type: '1/1', date: '2024-03-11' },
+        { id: 6, name: 'Cosmic Dreams #6', price: '75 SUI', creator: 'Luna Digital', image: 'new1-6', type: '1/1', date: '2024-03-10' }
+      ]
+    },
+    2: {
+      name: 'Digital Oasis',
+      creator: 'Pixel Dreams',
+      bannerImage: 'collection-banner-2',
+      profileImage: 'collection-profile-2',
+      items: [
+        { id: 1, name: 'Digital Oasis #1', price: '75 SUI', creator: 'Pixel Dreams', image: 'new2', type: 'Edition 1/10', date: '2024-03-10' },
+        { id: 2, name: 'Digital Oasis #2', price: '80 SUI', creator: 'Pixel Dreams', image: 'new2-2', type: 'Edition 2/10', date: '2024-03-09' },
+        { id: 3, name: 'Digital Oasis #3', price: '85 SUI', creator: 'Pixel Dreams', image: 'new2-3', type: 'Edition 3/10', date: '2024-03-08' },
+        { id: 4, name: 'Digital Oasis #4', price: '90 SUI', creator: 'Pixel Dreams', image: 'new2-4', type: 'Edition 4/10', date: '2024-03-07' },
+        { id: 5, name: 'Digital Oasis #5', price: '95 SUI', creator: 'Pixel Dreams', image: 'new2-5', type: 'Edition 5/10', date: '2024-03-06' },
+        { id: 6, name: 'Digital Oasis #6', price: '100 SUI', creator: 'Pixel Dreams', image: 'new2-6', type: 'Edition 6/10', date: '2024-03-05' }
+      ]
+    },
+    3: {
+      name: 'Neon Nights',
+      creator: 'Neon Artist',
+      bannerImage: 'collection-banner-3',
+      profileImage: 'collection-profile-3',
+      items: [
+        { id: 1, name: 'Neon Nights #1', price: '45 SUI', creator: 'Neon Artist', image: 'new3', type: '1/1', date: '2024-03-05' },
+        { id: 2, name: 'Neon Nights #2', price: '50 SUI', creator: 'Neon Artist', image: 'new3-2', type: '1/1', date: '2024-03-04' },
+        { id: 3, name: 'Neon Nights #3', price: '55 SUI', creator: 'Neon Artist', image: 'new3-3', type: '1/1', date: '2024-03-03' },
+        { id: 4, name: 'Neon Nights #4', price: '60 SUI', creator: 'Neon Artist', image: 'new3-4', type: '1/1', date: '2024-03-02' },
+        { id: 5, name: 'Neon Nights #5', price: '65 SUI', creator: 'Neon Artist', image: 'new3-5', type: '1/1', date: '2024-03-01' },
+        { id: 6, name: 'Neon Nights #6', price: '70 SUI', creator: 'Neon Artist', image: 'new3-6', type: '1/1', date: '2024-02-29' }
+      ]
+    },
+    4: {
+      name: 'Quantum Echoes',
+      creator: 'Quantum Creator',
+      bannerImage: 'collection-banner-4',
+      profileImage: 'collection-profile-4',
+      items: [
+        { id: 1, name: 'Quantum Echoes #1', price: '65 SUI', creator: 'Quantum Creator', image: 'new4', type: 'Edition 2/10', date: '2024-03-01' },
+        { id: 2, name: 'Quantum Echoes #2', price: '70 SUI', creator: 'Quantum Creator', image: 'new4-2', type: 'Edition 3/10', date: '2024-02-29' },
+        { id: 3, name: 'Quantum Echoes #3', price: '75 SUI', creator: 'Quantum Creator', image: 'new4-3', type: 'Edition 4/10', date: '2024-02-28' },
+        { id: 4, name: 'Quantum Echoes #4', price: '80 SUI', creator: 'Quantum Creator', image: 'new4-4', type: 'Edition 5/10', date: '2024-02-27' },
+        { id: 5, name: 'Quantum Echoes #5', price: '85 SUI', creator: 'Quantum Creator', image: 'new4-5', type: 'Edition 6/10', date: '2024-02-26' },
+        { id: 6, name: 'Quantum Echoes #6', price: '90 SUI', creator: 'Quantum Creator', image: 'new4-6', type: 'Edition 7/10', date: '2024-02-25' }
+      ]
+    },
+    5: {
+      name: 'Digital Serenity',
+      creator: 'Zen Digital',
+      bannerImage: 'collection-banner-5',
+      profileImage: 'collection-profile-5',
+      items: [
+        { id: 1, name: 'Digital Serenity #1', price: '55 SUI', creator: 'Zen Digital', image: 'new5', type: '1/1', date: '2024-02-28' },
+        { id: 2, name: 'Digital Serenity #2', price: '60 SUI', creator: 'Zen Digital', image: 'new5-2', type: '1/1', date: '2024-02-27' },
+        { id: 3, name: 'Digital Serenity #3', price: '65 SUI', creator: 'Zen Digital', image: 'new5-3', type: '1/1', date: '2024-02-26' },
+        { id: 4, name: 'Digital Serenity #4', price: '70 SUI', creator: 'Zen Digital', image: 'new5-4', type: '1/1', date: '2024-02-25' },
+        { id: 5, name: 'Digital Serenity #5', price: '75 SUI', creator: 'Zen Digital', image: 'new5-5', type: '1/1', date: '2024-02-24' },
+        { id: 6, name: 'Digital Serenity #6', price: '80 SUI', creator: 'Zen Digital', image: 'new5-6', type: '1/1', date: '2024-02-23' }
+      ]
+    },
+    6: {
+      name: 'Cyber Dreams',
+      creator: 'Cyber Artist',
+      bannerImage: 'collection-banner-6',
+      profileImage: 'collection-profile-6',
+      items: [
+        { id: 1, name: 'Cyber Dreams #1', price: '85 SUI', creator: 'Cyber Artist', image: 'new6', type: 'Edition 3/10', date: '2024-02-25' },
+        { id: 2, name: 'Cyber Dreams #2', price: '90 SUI', creator: 'Cyber Artist', image: 'new6-2', type: 'Edition 4/10', date: '2024-02-24' },
+        { id: 3, name: 'Cyber Dreams #3', price: '95 SUI', creator: 'Cyber Artist', image: 'new6-3', type: 'Edition 5/10', date: '2024-02-23' },
+        { id: 4, name: 'Cyber Dreams #4', price: '100 SUI', creator: 'Cyber Artist', image: 'new6-4', type: 'Edition 6/10', date: '2024-02-22' },
+        { id: 5, name: 'Cyber Dreams #5', price: '105 SUI', creator: 'Cyber Artist', image: 'new6-5', type: 'Edition 7/10', date: '2024-02-21' },
+        { id: 6, name: 'Cyber Dreams #6', price: '110 SUI', creator: 'Cyber Artist', image: 'new6-6', type: 'Edition 8/10', date: '2024-02-20' }
       ]
     }
   };

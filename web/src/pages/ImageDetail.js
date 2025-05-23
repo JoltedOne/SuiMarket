@@ -197,11 +197,71 @@ function ImageDetail() {
         creator: 'Luna Digital',
         items: [
           { id: 1, name: 'Cosmic Dreams #1', price: '50 SUI', creator: 'Luna Digital', image: 'new1', type: '1/1' },
-          { id: 2, name: 'Digital Oasis', price: '75 SUI', creator: 'Pixel Dreams', image: 'new2', type: 'Edition 1/10' },
-          { id: 3, name: 'Neon Nights', price: '120 SUI', creator: 'Cyber Artist', image: 'new3', type: '1/1' },
-          { id: 4, name: 'Abstract Dreams', price: '95 SUI', creator: 'Digital Vision', image: 'new4', type: 'Edition 1/5' },
-          { id: 5, name: 'Cosmic Journey', price: '150 SUI', creator: 'Star Creator', image: 'new5', type: '1/1' },
-          { id: 6, name: 'Digital Universe', price: '180 SUI', creator: 'Space Artist', image: 'new6', type: 'Edition 1/3' }
+          { id: 2, name: 'Cosmic Dreams #2', price: '55 SUI', creator: 'Luna Digital', image: 'new1-2', type: '1/1' },
+          { id: 3, name: 'Cosmic Dreams #3', price: '60 SUI', creator: 'Luna Digital', image: 'new1-3', type: '1/1' },
+          { id: 4, name: 'Cosmic Dreams #4', price: '65 SUI', creator: 'Luna Digital', image: 'new1-4', type: '1/1' },
+          { id: 5, name: 'Cosmic Dreams #5', price: '70 SUI', creator: 'Luna Digital', image: 'new1-5', type: '1/1' },
+          { id: 6, name: 'Cosmic Dreams #6', price: '75 SUI', creator: 'Luna Digital', image: 'new1-6', type: '1/1' }
+        ]
+      },
+      2: {
+        name: 'Digital Oasis',
+        creator: 'Pixel Dreams',
+        items: [
+          { id: 1, name: 'Digital Oasis #1', price: '75 SUI', creator: 'Pixel Dreams', image: 'new2', type: 'Edition 1/10' },
+          { id: 2, name: 'Digital Oasis #2', price: '80 SUI', creator: 'Pixel Dreams', image: 'new2-2', type: 'Edition 2/10' },
+          { id: 3, name: 'Digital Oasis #3', price: '85 SUI', creator: 'Pixel Dreams', image: 'new2-3', type: 'Edition 3/10' },
+          { id: 4, name: 'Digital Oasis #4', price: '90 SUI', creator: 'Pixel Dreams', image: 'new2-4', type: 'Edition 4/10' },
+          { id: 5, name: 'Digital Oasis #5', price: '95 SUI', creator: 'Pixel Dreams', image: 'new2-5', type: 'Edition 5/10' },
+          { id: 6, name: 'Digital Oasis #6', price: '100 SUI', creator: 'Pixel Dreams', image: 'new2-6', type: 'Edition 6/10' }
+        ]
+      },
+      3: {
+        name: 'Neon Nights',
+        creator: 'Neon Artist',
+        items: [
+          { id: 1, name: 'Neon Nights #1', price: '45 SUI', creator: 'Neon Artist', image: 'new3', type: '1/1' },
+          { id: 2, name: 'Neon Nights #2', price: '50 SUI', creator: 'Neon Artist', image: 'new3-2', type: '1/1' },
+          { id: 3, name: 'Neon Nights #3', price: '55 SUI', creator: 'Neon Artist', image: 'new3-3', type: '1/1' },
+          { id: 4, name: 'Neon Nights #4', price: '60 SUI', creator: 'Neon Artist', image: 'new3-4', type: '1/1' },
+          { id: 5, name: 'Neon Nights #5', price: '65 SUI', creator: 'Neon Artist', image: 'new3-5', type: '1/1' },
+          { id: 6, name: 'Neon Nights #6', price: '70 SUI', creator: 'Neon Artist', image: 'new3-6', type: '1/1' }
+        ]
+      },
+      4: {
+        name: 'Quantum Echoes',
+        creator: 'Quantum Creator',
+        items: [
+          { id: 1, name: 'Quantum Echoes #1', price: '65 SUI', creator: 'Quantum Creator', image: 'new4', type: 'Edition 2/10' },
+          { id: 2, name: 'Quantum Echoes #2', price: '70 SUI', creator: 'Quantum Creator', image: 'new4-2', type: 'Edition 3/10' },
+          { id: 3, name: 'Quantum Echoes #3', price: '75 SUI', creator: 'Quantum Creator', image: 'new4-3', type: 'Edition 4/10' },
+          { id: 4, name: 'Quantum Echoes #4', price: '80 SUI', creator: 'Quantum Creator', image: 'new4-4', type: 'Edition 5/10' },
+          { id: 5, name: 'Quantum Echoes #5', price: '85 SUI', creator: 'Quantum Creator', image: 'new4-5', type: 'Edition 6/10' },
+          { id: 6, name: 'Quantum Echoes #6', price: '90 SUI', creator: 'Quantum Creator', image: 'new4-6', type: 'Edition 7/10' }
+        ]
+      },
+      5: {
+        name: 'Digital Serenity',
+        creator: 'Zen Digital',
+        items: [
+          { id: 1, name: 'Digital Serenity #1', price: '55 SUI', creator: 'Zen Digital', image: 'new5', type: '1/1' },
+          { id: 2, name: 'Digital Serenity #2', price: '60 SUI', creator: 'Zen Digital', image: 'new5-2', type: '1/1' },
+          { id: 3, name: 'Digital Serenity #3', price: '65 SUI', creator: 'Zen Digital', image: 'new5-3', type: '1/1' },
+          { id: 4, name: 'Digital Serenity #4', price: '70 SUI', creator: 'Zen Digital', image: 'new5-4', type: '1/1' },
+          { id: 5, name: 'Digital Serenity #5', price: '75 SUI', creator: 'Zen Digital', image: 'new5-5', type: '1/1' },
+          { id: 6, name: 'Digital Serenity #6', price: '80 SUI', creator: 'Zen Digital', image: 'new5-6', type: '1/1' }
+        ]
+      },
+      6: {
+        name: 'Cyber Dreams',
+        creator: 'Cyber Artist',
+        items: [
+          { id: 1, name: 'Cyber Dreams #1', price: '85 SUI', creator: 'Cyber Artist', image: 'new6', type: 'Edition 3/10' },
+          { id: 2, name: 'Cyber Dreams #2', price: '90 SUI', creator: 'Cyber Artist', image: 'new6-2', type: 'Edition 4/10' },
+          { id: 3, name: 'Cyber Dreams #3', price: '95 SUI', creator: 'Cyber Artist', image: 'new6-3', type: 'Edition 5/10' },
+          { id: 4, name: 'Cyber Dreams #4', price: '100 SUI', creator: 'Cyber Artist', image: 'new6-4', type: 'Edition 6/10' },
+          { id: 5, name: 'Cyber Dreams #5', price: '105 SUI', creator: 'Cyber Artist', image: 'new6-5', type: 'Edition 7/10' },
+          { id: 6, name: 'Cyber Dreams #6', price: '110 SUI', creator: 'Cyber Artist', image: 'new6-6', type: 'Edition 8/10' }
         ]
       }
     };
