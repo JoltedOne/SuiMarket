@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useWallet } from '@suiet/wallet-kit';
 import { useParams, useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
+import { JsonRpcProvider, Connection } from '@mysten/sui.js';
 
 function PersonalMarket() {
   const { account } = useWallet();
@@ -92,9 +94,16 @@ function PersonalMarket() {
   };
 
   return (
-    <div className={`min-h-screen ${currentTheme.background} ${currentTheme.text} py-8`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+    <div className={`min-h-screen flex flex-col ${currentTheme.background} ${currentTheme.text} transition-colors duration-300`}>
+      <Header 
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isDarkMode={isDarkMode}
+        toggleTheme={() => setIsDarkMode(!isDarkMode)}
+        currentTheme={currentTheme}
+      />
+
+      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-['Helvetica'] mt-[140px]">
         <div className={`${currentTheme.card} rounded-lg p-6 mb-8`}>
           <div className="flex items-center justify-between mb-6">
             <button
@@ -149,7 +158,7 @@ function PersonalMarket() {
             {renderTabContent(activeTab)}
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

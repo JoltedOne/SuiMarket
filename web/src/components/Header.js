@@ -21,7 +21,12 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
   });
   const [walletBalance, setWalletBalance] = useState('0.00');
 
-  const tabs = ['New', 'Just Sold', 'Popular', 'Exclusive'];
+  const tabs = [
+    { name: 'New', path: '/collections', category: 'featured' },
+    { name: 'Just Sold', path: '/collections', category: 'popular' },
+    { name: 'Popular', path: '/collections', category: 'popular' },
+    { name: 'Exclusive', path: '/collections', category: 'exclusive' }
+  ];
 
   // Function to abbreviate wallet address
   const abbreviateAddress = (address) => {
@@ -165,6 +170,20 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
       default:
         return null;
     }
+  };
+
+  const handleTabClick = (tab) => {
+    setActiveTab(tab.name);
+    const searchParams = new URLSearchParams(window.location.search);
+    
+    if (tab.category) {
+      searchParams.set('category', tab.category);
+    } else {
+      searchParams.delete('category');
+    }
+    
+    const newPath = `${tab.path}${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+    window.history.pushState({}, '', newPath);
   };
 
   return (
@@ -370,78 +389,59 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
             <nav className="hidden lg:flex space-x-4">
               {tabs.map((tab) => (
                 <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
+                  key={tab.name}
+                  onClick={() => handleTabClick(tab)}
                   className={`
                     whitespace-nowrap py-2 px-4 text-xl font-['Teko'] tracking-wide rounded-lg transition-all duration-300
-                    ${activeTab === tab
+                    ${activeTab === tab.name
                       ? `${currentTheme.tabActive} ${currentTheme.text}`
                       : `${currentTheme.tabInactive} hover:shadow-lg ${isDarkMode ? 'hover:shadow-[#00FF85]/20' : 'hover:shadow-[#EB750E]/20'} hover:scale-105`
                     }
                   `}
                 >
-                  {tab}
+                  {tab.name}
                 </button>
               ))}
             </nav>
 
-            {/* Search Bar with Menu Button */}
-            <div className="flex items-center space-x-2 lg:w-1/2 relative z-[1]">
-              {/* Three-line Menu Button - Only visible on mobile */}
-              <button
-                onClick={toggleMenu}
-                className="lg:hidden p-2 rounded-lg border border-gray-200 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                aria-label="Toggle menu"
-              >
-                <svg 
-                  className="w-6 h-6" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            {/* Mobile Menu */}
+            <div className={`lg:hidden ${isMenuOpen ? 'block' : 'hidden'} absolute top-full left-0 right-0 mt-2 ${currentTheme.card} shadow-lg rounded-lg border ${currentTheme.border} z-50`}>
+              <nav className="p-4">
+                <div className="flex flex-col space-y-2">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.name}
+                      onClick={() => {
+                        handleTabClick(tab);
+                        setIsMenuOpen(false);
+                      }}
+                      className={`
+                        text-left whitespace-nowrap py-2 px-4 text-xl tracking-wide rounded-lg transition-all duration-300
+                        ${activeTab === tab.name
+                          ? `${currentTheme.tabActive} ${currentTheme.text}`
+                          : `${currentTheme.tabInactive} hover:shadow-lg ${isDarkMode ? 'hover:shadow-[#00FF85]/20' : 'hover:shadow-[#EB750E]/20'} hover:scale-105`
+                        }
+                      `}
+                    >
+                      {tab.name}
+                    </button>
+                  ))}
+                </div>
+              </nav>
+            </div>
+
+            <div className="relative w-[602px]">
+              <input
+                type="text"
+                placeholder="Search..."
+                className="w-full pl-3 pr-8 py-1 text-base font-['Teko'] outline-none border-none bg-transparent shadow-none focus:ring-0 focus:outline-none"
+                style={{ boxShadow: 'none', background: 'none', border: 'none' }}
+              />
+              <span className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-              </button>
-
-              {/* Mobile Menu */}
-              <div className={`lg:hidden ${isMenuOpen ? 'block' : 'hidden'} absolute top-full left-0 right-0 mt-2 ${currentTheme.card} shadow-lg rounded-lg border ${currentTheme.border} z-50`}>
-                <nav className="p-4">
-                  <div className="flex flex-col space-y-2">
-                    {tabs.map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => {
-                          setActiveTab(tab);
-                          setIsMenuOpen(false);
-                        }}
-                        className={`
-                           text-left whitespace-nowrap py-2 px-4 text-xl tracking-wide rounded-lg transition-all duration-300
-                          ${activeTab === tab
-                            ? `${currentTheme.tabActive} ${currentTheme.text}`
-                            : `${currentTheme.tabInactive} hover:shadow-lg ${isDarkMode ? 'hover:shadow-[#00FF85]/20' : 'hover:shadow-[#EB750E]/20'} hover:scale-105`
-                          }
-                        `}
-                      >
-                        {tab}
-                      </button>
-                    ))}
-                  </div>
-                </nav>
-              </div>
-
-              <div className="relative w-[602px]">
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="w-full pl-3 pr-8 py-1 text-base font-['Teko'] outline-none border-none bg-transparent shadow-none focus:ring-0 focus:outline-none"
-                  style={{ boxShadow: 'none', background: 'none', border: 'none' }}
-                />
-                <span className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </span>
-              </div>
+              </span>
             </div>
           </div>
         </div>

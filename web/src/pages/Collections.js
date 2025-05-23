@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '@suiet/wallet-kit';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import In_Image from '../components/In_Image';
+import { JsonRpcProvider, Connection } from '@mysten/sui.js';
 
 // Add font imports
 const fonts = `
@@ -129,13 +131,16 @@ function Collections() {
     // In a real app, this would update the collection name in the backend
   };
 
+  const handleImageClick = (imageId) => {
+    navigate(`/collections/${collectionId}/item/${imageId}`);
+  };
+
   if (!collection) {
     return null; // or a loading spinner
   }
 
   return (
-    <div className={`min-h-screen ${currentTheme.background} ${currentTheme.text} transition-colors duration-300`}>
-      {/* Header Component */}
+    <div className={`min-h-screen flex flex-col ${currentTheme.background} ${currentTheme.text} transition-colors duration-300`}>
       <Header 
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -144,8 +149,7 @@ function Collections() {
         currentTheme={currentTheme}
       />
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-['Helvetica'] mt-[140px] relative z-0">
+      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 font-['Helvetica'] mt-[140px] relative z-0">
         {/* Collection Banner */}
         <div className={`relative rounded-lg overflow-hidden mb-8 ${currentTheme.card} z-0`}>
           <img 
@@ -242,29 +246,20 @@ function Collections() {
         </div>
 
         {/* Collection Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-0">
           {collection.items.map((item) => (
-            <div key={item.id} className={`rounded-lg overflow-hidden ${currentTheme.card} ${currentTheme.cardHover} relative z-0`}>
-              <img 
-                src={`https://picsum.photos/seed/${item.image}/400/300`}
-                alt={item.name}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="font-semibold mb-2">{item.name}</h3>
-                <div className="flex justify-between items-center">
-                  <div className="text-sm opacity-80">
-                    <div>Creator: {item.creator}</div>
-                    <div className={`${item.type === '1/1' ? 'text-[#00CC6A]' : 'text-[#00994D]'}`}>
-                      {item.type}
-                    </div>
-                  </div>
-                  <div className={`text-sm font-semibold ${currentTheme.price}`}>
-                    {item.price}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <In_Image
+              key={item.id}
+              imageId={item.image}
+              title={item.name}
+              price={item.price}
+              creator={item.creator}
+              creatorImageId={item.id}
+              type={item.type}
+              currentTheme={currentTheme}
+              collectionId={collectionId}
+              onImageClick={handleImageClick}
+            />
           ))}
         </div>
       </main>
