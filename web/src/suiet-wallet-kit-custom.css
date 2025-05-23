@@ -1,0 +1,132 @@
+/* Theme variables */
+[data-theme="light"],
+.theme-light {
+  --wkit-bg-rgb: 229, 231, 235 !important; /* #e5e7eb */
+  --wkit-on-bg-rgb: 0, 0, 0 !important;
+  --wkit-accent-rgb: 229, 231, 235 !important;
+  --wkit-on-accent-rgb: 0, 0, 0 !important;
+}
+
+[data-theme="dark"],
+.theme-dark {
+  --wkit-bg-rgb: 18, 18, 18 !important; /* #121212 */
+  --wkit-on-bg-rgb: 255, 255, 255 !important;
+  --wkit-accent-rgb: 18, 18, 18 !important;
+  --wkit-on-accent-rgb: 255, 255, 255 !important;
+}
+
+/* Default theme (dark) */
+:root {
+  --wkit-bg-rgb: 18, 18, 18; /* #121212 */
+  --wkit-on-bg-rgb: 255, 255, 255;
+  --wkit-accent-rgb: 18, 18, 18;
+  --wkit-on-accent-rgb: 255, 255, 255;
+}
+
+/* Wallet button styles */
+.wallet-adapter-button,
+.wallet-adapter-button-trigger {
+  background: rgb(var(--wkit-bg-rgb)) !important;
+  color: rgb(var(--wkit-on-bg-rgb)) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease-in-out !important;
+  position: relative !important;
+  z-index: 999999 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.wallet-adapter-button:hover,
+.wallet-adapter-button-trigger:hover {
+  background: rgba(var(--wkit-bg-rgb), 0.8) !important;
+  color: rgb(var(--wkit-on-bg-rgb)) !important;
+  box-shadow: none !important;
+}
+
+/* Modal and dropdown styles */
+.wallet-adapter-modal,
+.wallet-adapter-dropdown {
+  background: rgb(var(--wkit-bg-rgb)) !important;
+  color: rgb(var(--wkit-on-bg-rgb)) !important;
+  position: relative !important;
+  z-index: 999999 !important;
+}
+
+/* Override any other styles that might be affecting the button */
+.wallet-adapter-button:not([disabled]):hover,
+.wallet-adapter-button-trigger:not([disabled]):hover {
+  background: rgba(var(--wkit-bg-rgb), 0.8) !important;
+  color: rgb(var(--wkit-on-bg-rgb)) !important;
+  box-shadow: none !important;
+}
+
+.wallet-adapter-button:not([disabled]),
+.wallet-adapter-button-trigger:not([disabled]) {
+  background: rgb(var(--wkit-bg-rgb)) !important;
+  color: rgb(var(--wkit-on-bg-rgb)) !important;
+  box-shadow: none !important;
+}
+
+.wallet-adapter-dropdown-list {
+  position: fixed !important;
+  z-index: 999999 !important;
+  top: auto !important;
+  right: auto !important;
+  margin-top: 4px !important;
+  background-color: rgb(var(--wkit-bg-rgb)) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  padding: 8px !important;
+  min-width: 200px !important;
+  transform: translateY(calc(100% + 4px)) !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 999998 !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Ensure dropdown container is positioned correctly */
+.wallet-adapter-dropdown {
+  position: static !important;
+}
+
+/* Ensure dropdown list is positioned relative to its trigger */
+.wallet-adapter-dropdown-list {
+  position: absolute !important;
+  transform: translateY(calc(100% + 4px)) !important;
+  right: 0 !important;
+  top: 0 !important;
+}
+
+.wallet-adapter-modal-header {
+  border-bottom: 1px solid rgba(var(--wkit-on-bg-rgb), 0.1) !important;
+}
+
+.wallet-adapter-wallet-item {
+  background-color: rgb(var(--wkit-bg-rgb)) !important;
+  color: rgb(var(--wkit-on-bg-rgb)) !important;
+  border: 1px solid rgba(var(--wkit-on-bg-rgb), 0.1) !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+  margin-bottom: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.wallet-adapter-wallet-item:hover {
+  background-color: rgba(var(--wkit-bg-rgb), 0.8) !important;
+  transform: translateY(-1px) !important;
+} 
