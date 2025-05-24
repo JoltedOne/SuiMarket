@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useWallet } from '@suiet/wallet-kit';
 import { Link, useNavigate } from 'react-router-dom';
 import { ConnectButton } from '@suiet/wallet-kit';
 import { JsonRpcProvider, Connection } from '@mysten/sui.js';
 import Header from '../components/Header';
+import { useWalletKit } from '@mysten/wallet-kit';
 
 // Add font imports
 const fonts = `
@@ -12,7 +12,6 @@ const fonts = `
 `;
 
 function Profile() {
-  const { account } = useWallet();
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const [sortBy, setSortBy] = useState('Recently Collected');
@@ -51,6 +50,23 @@ function Profile() {
   const [instagramUrl, setInstagramUrl] = useState('');
   const [twitterUrl, setTwitterUrl] = useState('');
   const navigate = useNavigate();
+  const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+  const { currentAccount } = useWalletKit();
+  const [bio, setBio] = useState('');
+
+  // Function to abbreviate wallet address
+  const abbreviateAddress = (address) => {
+    if (!address) return '';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
+  // Function to copy address to clipboard
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    // You could add a toast notification here if you want
+  };
 
   // Theme styles
   const themeStyles = {
@@ -141,20 +157,10 @@ function Profile() {
     }
   };
 
-  // Update walletAddress when account changes
-  useEffect(() => {
-    if (account) {
-      setUserProfile(prev => ({
-        ...prev,
-        walletAddress: account.address
-      }));
-    }
-  }, [account]);
-
   // Update wallet balance when account changes
   useEffect(() => {
     const fetchBalance = async () => {
-      if (account) {
+      if (currentAccount?.address) {
         try {
           const connection = new Connection({
             fullnode: 'https://fullnode.mainnet.sui.io',
@@ -162,7 +168,7 @@ function Profile() {
           const provider = new JsonRpcProvider(connection);
           
           const balance = await provider.getBalance({
-            owner: account.address,
+            owner: currentAccount.address,
             coinType: '0x2::sui::SUI'
           });
           
@@ -183,7 +189,7 @@ function Profile() {
     const intervalId = setInterval(fetchBalance, 30000);
     
     return () => clearInterval(intervalId);
-  }, [account]);
+  }, [currentAccount]);
 
   // Add these functions to handle social media URL updates
   const handleWebsiteUpdate = () => {
@@ -337,6 +343,90 @@ function Profile() {
     }
   };
 
+  // Determine if this is the user's own profile
+  const isOwnProfile = currentAccount && userProfile.walletAddress && currentAccount.address === userProfile.walletAddress;
+  console.log('Render check: currentAccount', currentAccount, 'userProfile.walletAddress', userProfile.walletAddress, 'isOwnProfile', isOwnProfile); // Log values on render
+
+  // Fetch profile data from backend
+  useEffect(() => {
+    console.log('Profile useEffect triggered. currentAccount:', currentAccount);
+    const fetchProfile = async () => {
+      if (currentAccount?.address) {
+        console.log('Fetching profile for address:', currentAccount.address);
+        try {
+          const response = await fetch(`http://localhost:5001/api/profiles/${currentAccount.address}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          console.log('Profile data fetched:', data);
+          setUserProfile(data);
+          setWebsiteUrl(data.social?.website || '');
+          setInstagramUrl(data.social?.instagram || '');
+          setTwitterUrl(data.social?.twitter || '');
+        } catch (error) {
+          console.error('Error fetching profile:', error);
+        }
+      }
+    };
+
+    fetchProfile();
+  }, [currentAccount]);
+
+  // Update bio when userProfile changes
+  useEffect(() => {
+    if (userProfile.bio) {
+      setBio(userProfile.bio);
+    }
+  }, [userProfile.bio]);
+
+  // Function to handle profile update
+  const handleUpdateProfile = async () => {
+    if (!currentAccount?.address) {
+      console.error("No wallet connected. Cannot save profile.");
+      return;
+    }
+
+    const updatedData = {
+      name: userProfile.name,
+      bio: bio,
+      bannerImage: userProfile.bannerImage,
+      profileImage: userProfile.profileImage,
+      social: {
+        twitter: userProfile.social.twitter,
+        instagram: userProfile.social.instagram,
+        website: userProfile.social.website,
+      }
+    };
+
+    console.log("Attempting to save profile with data:", updatedData);
+
+    try {
+      const response = await fetch(`http://localhost:5001/api/profiles/${currentAccount.address}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`HTTP error! status: ${response.status}`, errorText);
+        // You might want to display an error message to the user here
+        throw new Error(`HTTP error! status: ${response.status}: ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('Profile updated successfully:', result);
+      setUserProfile(result); // Update state with the saved profile data from the backend
+      setIsEditProfileOpen(false); // Close the modal on successful save
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      // Handle update error, e.g., show a user-friendly error message
+    }
+  };
+
   return (
     <div className={`min-h-screen flex flex-col ${currentTheme.background} ${currentTheme.text} transition-colors duration-300`}>
       <Header 
@@ -351,20 +441,62 @@ function Profile() {
         {/* Profile Banner */}
         <div className={`relative rounded-lg overflow-hidden mb-8 ${currentTheme.card} ${currentTheme.walletBanner}`}>
           <img 
-            src={`https://picsum.photos/seed/${userProfile.bannerImage}/1200/300`}
+            src={`https://picsum.photos/seed/${userProfile.bannerImage}/1200/300?t=${Date.now()}`}
             alt="Profile Banner"
-            className="w-full h-[200px] object-cover"
+            className="w-full h-[200px] object-cover cursor-pointer"
+            onClick={isOwnProfile ? () => setIsBannerModalOpen(true) : undefined}
+            style={{ transition: 'box-shadow 0.2s' }}
           />
+          {/* Modal for enlarged banner */}
+          {isBannerModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+              <div className="relative">
+                <img src={`https://picsum.photos/seed/${userProfile.bannerImage}/1200/600?t=${Date.now()}`} alt="Banner Large" className="rounded-lg max-h-[80vh] max-w-[90vw]" />
+                <button onClick={() => setIsBannerModalOpen(false)} className="absolute top-2 right-2 bg-black bg-opacity-60 rounded-full p-2 text-white hover:bg-opacity-80">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+          )}
           <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
             <div className="flex items-end space-x-4">
-              <img 
-                src={`https://picsum.photos/seed/${userProfile.profileImage}/200/200`}
-                alt="Profile"
-                className="w-24 h-24 rounded-full border-4 border-white dark:border-gray-800"
-              />
-              <div>
-                <h1 className="text-2xl font-bold">{userProfile.name}</h1>
-                <p className="text-sm opacity-80">{userProfile.rank}</p>
+              <div className="relative group">
+                <img 
+                  src={`https://picsum.photos/seed/${userProfile.profileImage}/200/200?t=${Date.now()}`}
+                  alt="Profile"
+                  className="w-24 h-24 rounded-full border-4 border-white dark:border-gray-800 object-cover cursor-pointer"
+                  onClick={isOwnProfile ? () => setIsEditProfileOpen(true) : undefined}
+                />
+                {/* Pencil hover only for own profile */}
+                {isOwnProfile && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-50 transition duration-200 rounded-full cursor-pointer opacity-0 group-hover:opacity-100"
+                    onClick={() => setIsEditProfileOpen(true)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col">
+                <h2 className="text-2xl font-bold text-white drop-shadow-lg break-words max-w-full overflow-hidden text-ellipsis">
+                  {userProfile.name}
+                </h2>
+                <p className="text-sm text-white/90 drop-shadow-lg break-words max-w-full overflow-hidden text-ellipsis">
+                  {userProfile.rank}
+                </p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-sm text-white/90 drop-shadow-lg break-words max-w-full overflow-hidden text-ellipsis">
+                    {abbreviateAddress(userProfile.walletAddress)}
+                  </p>
+                  <button
+                    onClick={() => copyToClipboard(userProfile.walletAddress)}
+                    className="p-1 hover:bg-white/20 rounded transition-colors duration-200"
+                    title="Copy full address"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -546,37 +678,54 @@ function Profile() {
 
           {/* Right Column - Collections */}
           <div className="lg:col-span-2">
-            <div className={`p-6 rounded-lg ${currentTheme.card}`}>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-semibold">My Collections</h2>
-                <div className="relative">
+            <div className={`p-6 rounded-lg ${currentTheme.card} relative z-0`}>
+              <div className="flex justify-between items-center mb-6 relative z-10">
+                <h2 className="text-xl font-semibold">My Collections</h2>
+                <div className="flex items-center relative">
+                  {/* The square filter button (always visible) */}
                   <button
                     onClick={() => setSortMenuOpen(!sortMenuOpen)}
-                    className={`px-4 py-2 rounded-lg ${currentTheme.button} flex items-center space-x-2`}
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${currentTheme.card} hover:bg-opacity-80 transition-colors duration-300 z-20 shrink-0`}
+                    aria-label="Toggle sort options"
                   >
-                    <span>Sort by: {sortBy}</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
                     </svg>
                   </button>
-                  {sortMenuOpen && (
-                    <div className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg ${currentTheme.card} border ${currentTheme.border} z-50`}>
-                      <div className="py-1">
-                        {sortOptions.map((option) => (
-                          <button
-                            key={option}
-                            onClick={() => {
-                              setSortBy(option);
-                              setSortMenuOpen(false);
-                            }}
-                            className={`w-full px-4 py-2 text-left text-sm ${
-                              sortBy === option ? currentTheme.text : currentTheme.description
-                            } hover:bg-gray-100 dark:hover:bg-gray-700`}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
+
+                  {/* The sliding bar with current sort and dropdown arrow */}
+                  <div className={`flex items-center h-10 overflow-hidden transition-all duration-300 ease-in-out ${sortMenuOpen ? 'max-w-xs opacity-100 ml-2' : 'max-w-0 opacity-0 pointer-events-none'} rounded-r-lg ${currentTheme.card} border-t border-b border-r ${currentTheme.border} z-10`}>
+                    <div className="flex items-center h-full transition-opacity duration-150 delay-150">
+                      <span className="text-sm mr-2 px-1 py-2 whitespace-nowrap">Sort by: {sortBy}</span>
+                      {/* Dropdown toggle button */}
+                      <button
+                        onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
+                        className={`p-1 rounded-lg ${currentTheme.card} hover:bg-opacity-80 transition-colors duration-200 mr-1`}
+                        aria-label="Toggle sort options"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transform transition-transform duration-300 ${isSortDropdownOpen ? 'rotate-180' : 'rotate-0'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* The dropdown menu */}
+                  {isSortDropdownOpen && (
+                    <div className={`absolute right-0 top-full mt-2 w-48 rounded-lg shadow-lg ${currentTheme.profileDropdown} border ${currentTheme.border} overflow-hidden z-50`}>
+                      {sortOptions.map((option) => (
+                        <button
+                          key={option}
+                          onClick={() => {
+                            setSortBy(option);
+                            setIsSortDropdownOpen(false);
+                            setSortMenuOpen(false); // Close bar when option is selected
+                          }}
+                          className={`w-full text-left px-4 py-2 hover:bg-opacity-80 ${currentTheme.text} ${sortBy === option ? 'bg-opacity-20 bg-[#00FF85]' : ''}`}
+                        >
+                          {option}
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -618,6 +767,107 @@ function Profile() {
             </div>
           </div>
         </div>
+
+        {/* Edit Profile Modal */}
+        {isEditProfileOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+            <div className={`bg-[#181818] rounded-lg p-8 w-full max-w-md relative`}>
+              <button onClick={() => setIsEditProfileOpen(false)} className="absolute top-2 right-2 bg-black bg-opacity-40 rounded-full p-2 text-white hover:bg-opacity-80">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+              <h2 className="text-xl font-bold mb-4 text-white">Edit Profile</h2>
+              <div className="space-y-4">
+                {/* Profile Picture */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-white">Profile Picture</label>
+                  <div className="flex items-center space-x-4">
+                    <img 
+                      src={`https://picsum.photos/seed/${userProfile.profileImage}/100/100?t=${Date.now()}`} 
+                      alt="Profile" 
+                      className="w-16 h-16 rounded-full object-cover border-2 border-gray-700" 
+                    />
+                    <button 
+                      onClick={() => setUserProfile(prev => ({ ...prev, profileImage: Math.floor(Math.random() * 100) }))} 
+                      className="px-3 py-1 rounded-lg bg-[#222] text-white hover:bg-[#333] transition-colors duration-200"
+                    >
+                      Change Picture
+                    </button>
+                  </div>
+                </div>
+                {/* Name */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-white">Name</label>
+                  <input 
+                    type="text" 
+                    value={userProfile.name} 
+                    onChange={e => setUserProfile(prev => ({ ...prev, name: e.target.value }))} 
+                    className="w-full px-3 py-2 rounded-lg border border-gray-700 bg-[#222] text-white focus:outline-none focus:border-[#00FF85]" 
+                  />
+                </div>
+                {/* Banner Image */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-white">Banner Image</label>
+                  <div className="space-y-2">
+                    <img 
+                      src={`https://picsum.photos/seed/${userProfile.bannerImage}/200/60?t=${Date.now()}`} 
+                      alt="Banner" 
+                      className="w-full h-12 object-cover rounded border border-gray-700" 
+                    />
+                    <button 
+                      onClick={() => setUserProfile(prev => ({ ...prev, bannerImage: Math.floor(Math.random() * 100) }))} 
+                      className="px-3 py-1 rounded-lg bg-[#222] text-white hover:bg-[#333] transition-colors duration-200"
+                    >
+                      Change Banner
+                    </button>
+                  </div>
+                </div>
+                {/* Bio */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-white">Bio</label>
+                  <textarea 
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    rows="3"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-700 bg-[#222] text-white focus:outline-none focus:border-[#00FF85]"
+                  ></textarea>
+                </div>
+                {/* Social Media Links */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-white">Social Media Links</label>
+                  <div className="space-y-2">
+                    <input 
+                      type="text" 
+                      value={userProfile.social.twitter} 
+                      onChange={e => setUserProfile(prev => ({ ...prev, social: { ...prev.social, twitter: e.target.value } }))} 
+                      placeholder="X (Twitter)" 
+                      className="w-full px-3 py-2 rounded-lg border border-gray-700 bg-[#222] text-white focus:outline-none focus:border-[#00FF85]" 
+                    />
+                    <input 
+                      type="text" 
+                      value={userProfile.social.instagram} 
+                      onChange={e => setUserProfile(prev => ({ ...prev, social: { ...prev.social, instagram: e.target.value } }))} 
+                      placeholder="Instagram" 
+                      className="w-full px-3 py-2 rounded-lg border border-gray-700 bg-[#222] text-white focus:outline-none focus:border-[#00FF85]" 
+                    />
+                    <input 
+                      type="text" 
+                      value={userProfile.social.website} 
+                      onChange={e => setUserProfile(prev => ({ ...prev, social: { ...prev.social, website: e.target.value } }))} 
+                      placeholder="Personal Website" 
+                      className="w-full px-3 py-2 rounded-lg border border-gray-700 bg-[#222] text-white focus:outline-none focus:border-[#00FF85]" 
+                    />
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={handleUpdateProfile}
+                className="mt-6 w-full py-2 rounded-lg bg-[#00FF85] text-black font-semibold hover:bg-[#00FF85]/90 transition-colors duration-200"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

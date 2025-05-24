@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useWallet, ConnectButton } from '@suiet/wallet-kit';
+import { ConnectButton } from '@mysten/wallet-kit';
+// Remove the import from '@suiet/wallet-kit'
 import { Link, useNavigate } from 'react-router-dom';
 import { JsonRpcProvider, Connection } from '@mysten/sui.js';
+import { useWalletKit } from '@mysten/wallet-kit';
 
 function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme }) {
-  const { account } = useWallet();
+  const { currentAccount, connect, disconnect, connected } = useWalletKit();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -13,6 +15,11 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [startWidth, setStartWidth] = useState(0);
+  const [imageTimestamp, setImageTimestamp] = useState(Date.now());
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const [userProfile, setUserProfile] = useState({
     name: 'CryptoArtist',
     rank: 'Gold Collector',
@@ -35,10 +42,11 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
-  // Update wallet balance when account changes
+  // Update wallet balance and fetch profile data when account changes
   useEffect(() => {
-    const fetchBalance = async () => {
-      if (account) {
+    const fetchWalletData = async () => {
+      if (currentAccount?.address) {
+        // Fetch wallet balance
         try {
           const connection = new Connection({
             fullnode: 'https://fullnode.mainnet.sui.io',
@@ -46,7 +54,7 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
           const provider = new JsonRpcProvider(connection);
           
           const balance = await provider.getBalance({
-            owner: account.address,
+            owner: currentAccount.address,
             coinType: '0x2::sui::SUI'
           });
           
@@ -57,17 +65,63 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
           console.error('Error fetching balance:', error);
           setWalletBalance('0.00');
         }
+
+        // Fetch user profile
+        try {
+          const response = await fetch(`http://localhost:5001/api/profiles/${currentAccount.address}`);
+          if (response.ok) {
+            const profileData = await response.json();
+            setUserProfile(profileData);
+            setImageTimestamp(Date.now()); // Update timestamp when profile changes
+            console.log('Fetched profile data in Header:', profileData);
+          } else {
+            console.error('Failed to fetch profile data in Header:', response.status);
+            setUserProfile({
+              name: 'New Collector',
+              rank: 'Bronze Collector',
+              profileImage: 'default-profile',
+              isCustomizing: false,
+              walletAddress: currentAccount.address,
+              bio: '',
+              social: { twitter: '', instagram: '', website: '' },
+              achievements: [],
+              collections: []
+            });
+            setImageTimestamp(Date.now());
+          }
+        } catch (error) {
+          console.error('Error fetching profile data in Header:', error);
+          setUserProfile({
+            name: 'New Collector',
+            rank: 'Bronze Collector',
+            profileImage: 'default-profile',
+            isCustomizing: false,
+            walletAddress: currentAccount.address,
+            bio: '',
+            social: { twitter: '', instagram: '', website: '' },
+            achievements: [],
+            collections: []
+          });
+          setImageTimestamp(Date.now());
+        }
       } else {
+        // Reset states if wallet is not connected
         setWalletBalance('0.00');
+        setUserProfile({
+          name: 'CryptoArtist', // Or a default non-connected state name
+          rank: 'Gold Collector', // Or a default non-connected state rank
+          profileImage: 'profile1', // Or a default non-connected state image
+          isCustomizing: false
+        });
       }
     };
 
-    fetchBalance();
-    // Set up an interval to refresh the balance every 30 seconds
-    const intervalId = setInterval(fetchBalance, 30000);
+    fetchWalletData();
+    // Set up an interval to refresh data every 30 seconds
+    const intervalId = setInterval(fetchWalletData, 30000);
     
     return () => clearInterval(intervalId);
-  }, [account]);
+  }, [currentAccount]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -193,6 +247,60 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
     'Exclusive': 'exclusive'
   };
 
+  // Determine if this is the user's own profile
+  const isOwnProfile = currentAccount && userProfile.walletAddress && currentAccount.address === userProfile.walletAddress;
+
+  // Add search handler
+  const handleSearch = async (query) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      // Search for profiles by name or wallet address
+      const response = await fetch(`http://localhost:5001/api/profiles/search?q=${encodeURIComponent(query)}`);
+      if (response.ok) {
+        const results = await response.json();
+        setSearchResults(results);
+        setShowSearchResults(true);
+      }
+    } catch (error) {
+      console.error('Error searching profiles:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Add click outside handler for search results
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showSearchResults && !event.target.closest('.search-container')) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSearchResults]);
+
+  // Add debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery) {
+        handleSearch(searchQuery);
+      }
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   return (
     <header className={`fixed top-0 left-0 right-0 ${currentTheme.header} shadow-md z-[5] transition-colors duration-300`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -285,15 +393,30 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
 
               {/* Profile Button with Menu */}
               <div className="relative profile-menu-container">
-                <button
-                  onClick={handleProfileMenuClick}
-                  className={`p-2 rounded-lg ${currentTheme.card} ${currentTheme.cardHover} transition-all duration-300 flex items-center gap-2`}
-                  aria-label="Profile menu"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </button>
+                {currentAccount ? (
+                  <button
+                    onClick={handleProfileMenuClick}
+                    className={`p-2 rounded-lg ${currentTheme.card} ${currentTheme.cardHover} transition-all duration-300 flex items-center gap-2`}
+                    aria-label="Profile menu"
+                  >
+                    <img
+                      src={`https://picsum.photos/seed/${userProfile.profileImage}/100/100?t=${imageTimestamp}`}
+                      alt="Profile"
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                    <span className="hidden md:inline-block">{abbreviateAddress(currentAccount.address)}</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleProfileMenuClick}
+                    className={`p-2 rounded-lg ${currentTheme.card} ${currentTheme.cardHover} transition-all duration-300`}
+                    aria-label="Profile menu"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </button>
+                )}
 
                 {/* Profile Menu Dropdown */}
                 {isProfileMenuOpen && (
@@ -306,22 +429,30 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
                     }}
                   >
                     {/* Profile Section */}
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <div className={`p-4 border-b ${currentTheme.border}`}>
                       <div className="w-full flex items-center">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-300 dark:border-gray-600">
-                            <img 
-                              src={`https://picsum.photos/seed/${userProfile.profileImage}/100/100`}
-                              alt="Profile"
-                              className="w-full h-full object-cover"
-                            />
+                          <div className={`w-10 h-10 rounded-full overflow-hidden border-2 ${currentTheme.border}`}>
+                            {currentAccount ? (
+                              <img 
+                                src={`https://picsum.photos/seed/${userProfile.profileImage}/100/100?t=${imageTimestamp}`}
+                                alt="Profile"
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className={`w-full h-full ${currentTheme.card} flex items-center justify-center`}>
+                                <svg className={`w-6 h-6 ${currentTheme.textSecondary}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                              </div>
+                            )}
                           </div>
                           <div className="text-left">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">
-                              {account ? abbreviateAddress(account.address) : 'Connect Wallet'}
+                            <p className={`text-sm font-medium ${currentTheme.text}`}>
+                              {currentAccount ? abbreviateAddress(currentAccount.address) : 'Connect Wallet'}
                             </p>
-                            {account && (
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {currentAccount && (
+                              <p className={`text-xs ${currentTheme.textSecondary}`}>
                                 {walletBalance} SUI
                               </p>
                             )}
@@ -331,49 +462,76 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
                     </div>
 
                     <div className="py-2">
-                      <Link 
-                        to="/profile"
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150 block"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          <span>Profile</span>
-                        </div>
-                      </Link>
-                      
-                      <button className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150">
-                        <div className="flex items-center space-x-2">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          <span>Settings</span>
-                        </div>
-                      </button>
-                      
-                      <button className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150">
-                        <div className="flex items-center space-x-2">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span>Help & Support</span>
-                        </div>
-                      </button>
+                      {currentAccount ? (
+                        <>
+                          <Link 
+                            to="/profile"
+                            className={`w-full px-4 py-2 text-left text-sm ${currentTheme.text} hover:bg-opacity-80 ${currentTheme.cardHover} transition-colors duration-150 block`}
+                            onClick={() => setIsProfileMenuOpen(false)}
+                          >
+                            <div className="flex items-center space-x-2">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              <span>Profile</span>
+                            </div>
+                          </Link>
+                          
+                          <button className={`w-full px-4 py-2 text-left text-sm ${currentTheme.text} hover:bg-opacity-80 ${currentTheme.cardHover} transition-colors duration-150`}>
+                            <div className="flex items-center space-x-2">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              <span>Settings</span>
+                            </div>
+                          </button>
+                          
+                          <button className={`w-full px-4 py-2 text-left text-sm ${currentTheme.text} hover:bg-opacity-80 ${currentTheme.cardHover} transition-colors duration-150`}>
+                            <div className="flex items-center space-x-2">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>Help & Support</span>
+                            </div>
+                          </button>
+                        </>
+                      ) : (
+                        <button 
+                          onClick={() => {
+                            setIsProfileMenuOpen(false);
+                            connect();
+                          }}
+                          className={`w-full px-4 py-2 text-left text-sm ${currentTheme.text} hover:bg-opacity-80 ${currentTheme.cardHover} transition-colors duration-150`}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            <span>Connect Wallet</span>
+                          </div>
+                        </button>
+                      )}
                     </div>
                     
-                    <div className="py-2 border-t border-gray-200 dark:border-gray-700">
-                      <button className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-150">
-                        <div className="flex items-center space-x-2">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                          </svg>
-                          <span>Disconnect</span>
-                        </div>
-                      </button>
-                    </div>
+                    {currentAccount && (
+                      <div className={`py-2 border-t ${currentTheme.border}`}>
+                        <button 
+                          onClick={() => {
+                            setIsProfileMenuOpen(false);
+                            disconnect();
+                          }}
+                          className={`w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-opacity-80 ${currentTheme.cardHover} transition-colors duration-150`}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            <span>Disconnect</span>
+                          </div>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -437,18 +595,66 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
               </nav>
             </div>
 
-            <div className="relative w-[602px]">
+            <div className="relative w-[602px] search-container">
               <input
                 type="text"
-                placeholder="Search..."
-                className="w-full pl-3 pr-8 py-1 text-base font-['Teko'] outline-none border-none bg-transparent shadow-none focus:ring-0 focus:outline-none"
+                placeholder="Search profiles..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => searchQuery && setShowSearchResults(true)}
+                className={`w-full pl-3 pr-8 py-1 text-base font-['Teko'] outline-none border-none bg-transparent shadow-none focus:ring-0 focus:outline-none ${currentTheme.text}`}
                 style={{ boxShadow: 'none', background: 'none', border: 'none' }}
               />
               <span className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                {isSearching ? (
+                  <svg className="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                )}
               </span>
+
+              {/* Search Results Dropdown */}
+              {showSearchResults && searchResults.length > 0 && (
+                <div className={`absolute top-full left-0 right-0 mt-2 ${currentTheme.card} rounded-lg shadow-lg border ${currentTheme.border} max-h-96 overflow-y-auto z-50`}>
+                  {searchResults.map((profile) => (
+                    <Link
+                      key={profile.walletAddress}
+                      to={`/profile/${profile.walletAddress}`}
+                      className={`flex items-center space-x-3 p-3 hover:bg-opacity-80 ${currentTheme.cardHover} transition-colors duration-150`}
+                      onClick={() => {
+                        setShowSearchResults(false);
+                        setSearchQuery('');
+                      }}
+                    >
+                      <img
+                        src={`https://picsum.photos/seed/${profile.profileImage}/100/100?t=${imageTimestamp}`}
+                        alt={profile.name}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium ${currentTheme.text} truncate`}>
+                          {profile.name}
+                        </p>
+                        <p className={`text-xs ${currentTheme.textSecondary} truncate`}>
+                          {abbreviateAddress(profile.walletAddress)}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              {/* No Results Message */}
+              {showSearchResults && searchQuery && !isSearching && searchResults.length === 0 && (
+                <div className={`absolute top-full left-0 right-0 mt-2 ${currentTheme.card} rounded-lg shadow-lg border ${currentTheme.border} p-4 text-center ${currentTheme.textSecondary}`}>
+                  No profiles found
+                </div>
+              )}
             </div>
           </div>
         </div>
