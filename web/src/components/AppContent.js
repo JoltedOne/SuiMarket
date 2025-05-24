@@ -10,10 +10,9 @@ const fonts = `
   @import url('https://fonts.googleapis.com/css2?family=Teko:wght@300;400;500;600;700&display=swap');
 `;
 
-function AppContent() {
+function AppContent({ isDarkMode, toggleTheme, currentTheme }) {
   const { account } = useWallet();
   const [activeTab, setActiveTab] = useState('New');
-  const [isDarkMode, setIsDarkMode] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [userProfile, setUserProfile] = useState({
@@ -28,56 +27,6 @@ function AppContent() {
   const [walletBalance, setWalletBalance] = useState('0.00');
 
   const tabs = ['New', 'Just Sold', 'Popular', 'Exclusive'];
-
-  // Theme styles
-  const themeStyles = {
-    dark: {
-      background: 'bg-[#121212]',
-      text: 'text-[#E0E0E0]',
-      header: 'bg-[#121212] border-b border-[#444444]',
-      card: 'bg-[#121212] border border-[#444444]',
-      cardHover: 'hover:shadow-xl hover:shadow-[#00FF85]/10',
-      border: 'border-[#444444]',
-      imageBorder: 'border-8 border-[#1A1A1A]',
-      tabActive: 'bg-[#444444] text-[#E0E0E0] rounded-lg',
-      tabInactive: 'text-[#B0B0B0] hover:text-[#E0E0E0] hover:bg-[#444444]/50 rounded-lg',
-      description: 'text-[#B0B0B0]',
-      price: 'text-[#00FF85]',
-      walletBanner: 'bg-[#121212] border border-[#444444]',
-      button: 'bg-[#00FF85] hover:bg-[#00FF85]/90 text-[#121212] font-semibold',
-      profileDropdown: 'bg-[#121212] border-[#444444]',
-      analyticsCard: 'bg-[#121212] border border-[#444444]',
-      analyticsValue: 'text-[#00FF85]',
-      analyticsChange: {
-        positive: 'text-[#00CC6A]',
-        negative: 'text-[#FF4444]'
-      }
-    },
-    light: {
-      background: 'bg-[#e5e8f0]',
-      text: 'text-[#333333]',
-      header: 'bg-[#e5e8f0]',
-      card: 'bg-[#e5e8f0] border border-[#333333]',
-      cardHover: 'hover:shadow-xl hover:shadow-[#EB750E]/20',
-      border: 'border-[#333333]',
-      imageBorder: 'border-8 border-[#d2d4dc]',
-      tabActive: 'bg-[#444444] text-[#e5e8f0] rounded-lg',
-      tabInactive: 'text-[#888888] hover:text-[#333333] hover:bg-[#B3B3B3]/50 rounded-lg',
-      description: 'text-[#888888]',
-      price: 'text-[#EB750E]',
-      walletBanner: 'bg-[#e5e8f0] border border-[#333333]',
-      button: 'bg-[#EB750E] hover:bg-[#EB750E]/90 text-[#e5e8f0] font-semibold',
-      profileDropdown: 'bg-[#e5e8f0] border-[#333333]',
-      analyticsCard: 'bg-[#e5e8f0] border border-[#333333]',
-      analyticsValue: 'text-[#EB750E]',
-      analyticsChange: {
-        positive: 'text-[#006633]',
-        negative: 'text-[#FF4444]'
-      }
-    }
-  };
-
-  const currentTheme = isDarkMode ? themeStyles.dark : themeStyles.light;
 
   // Add font styles to document
   useEffect(() => {
@@ -99,10 +48,6 @@ function AppContent() {
       document.body.removeAttribute('data-theme');
     };
   }, [isDarkMode]);
-
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-  };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);

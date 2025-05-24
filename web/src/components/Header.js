@@ -312,7 +312,7 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
                 <h1 className="text-2xl font-bold tracking-wider font-['Orbitron'] transition-all duration-300">
                   <svg
                     className="h-[40px] w-auto" 
-                    viewBox="0 0 273.06 66.18"
+                    viewBox="0 0 300 66.18"
                     xmlns="http://www.w3.org/2000/svg"
                     style={{ background: 'transparent' }}
                   >
@@ -355,8 +355,8 @@ function Header({ activeTab, setActiveTab, isDarkMode, toggleTheme, currentTheme
                         <tspan className="cls-2" x="55.68" y="0" style={{ background: 'transparent !important' }}>on</tspan>
                         <tspan className="cls-4" x="137.16" y="0" style={{ background: 'transparent !important' }}>o</tspan>
                         <tspan x="177.48" y="0" style={{ background: 'transparent !important' }}>li</tspan>
-                        <tspan className="cls-3" x="208.08" y="0" style={{ background: 'transparent !important' }}>t</tspan>
-                        <tspan x="232.98" y="0" style={{ background: 'transparent !important' }}>h</tspan>
+                        <tspan className="cls-3" x="215.08" y="0" style={{ background: 'transparent !important' }}>t</tspan>
+                        <tspan x="239.98" y="0" style={{ background: 'transparent !important' }}>h</tspan>
                       </text>
                     </g>
                   </svg>

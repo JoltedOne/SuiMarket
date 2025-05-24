@@ -74,11 +74,10 @@ const analyticsData = {
   }
 };
 
-function ImageDetail() {
+function ImageDetail({ isDarkMode, toggleTheme, currentTheme }) {
   const { collectionId, itemId } = useParams();
   const navigate = useNavigate();
   const { account } = useWallet();
-  const [isDarkMode, setIsDarkMode] = useState(true);
   const [activeTab, setActiveTab] = useState('New');
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
   const [analyticsWidth, setAnalyticsWidth] = useState(300);
@@ -88,74 +87,6 @@ function ImageDetail() {
   const [item, setItem] = useState(null);
   const [collection, setCollection] = useState(null);
   const [currentAnalytics, setCurrentAnalytics] = useState(null);
-
-  // Theme styles (complete version)
-  const themeStyles = {
-    dark: {
-      background: 'bg-[#121212]',
-      text: 'text-[#E0E0E0]',
-      header: 'bg-[#121212] border-b border-[#444444]',
-      card: 'bg-[#121212]',
-      cardHover: 'hover:shadow-xl hover:shadow-[#00FF85]/10',
-      imageBorder: 'border-8 border-[#1A1A1A]',
-      tabActive: 'bg-[#444444] text-[#E0E0E0] rounded-lg',
-      tabInactive: 'text-[#B0B0B0] hover:text-[#E0E0E0] hover:bg-[#444444]/50 rounded-lg',
-      description: 'text-[#B0B0B0]',
-      price: 'text-[#00FF85]',
-      walletBanner: 'bg-[#121212] border border-[#444444]',
-      button: 'bg-[#00FF85] hover:bg-[#00FF85]/90 text-[#121212] font-semibold',
-      profileDropdown: 'bg-[#121212] border-[#444444]',
-      analyticsCard: 'bg-[#121212] border border-[#444444]',
-      analyticsValue: 'text-[#00FF85]',
-      analyticsChange: {
-        positive: 'text-[#00CC6A]',
-        negative: 'text-[#FF4444]'
-      },
-      settingsDropdown: 'bg-[#121212] border-[#444444]'
-    },
-    light: {
-      background: 'bg-[#e5e8f0]',
-      text: 'text-[#333333]',
-      header: 'bg-[#e5e8f0]',
-      card: 'bg-[#e5e8f0] ',
-      cardHover: 'hover:shadow-xl hover:shadow-[#EB750E]/20',
-      imageBorder: 'border-8 border-[#d2d4dc]',
-      tabActive: 'bg-[#444444] text-[#e5e8f0] rounded-lg',
-      tabInactive: 'text-[#888888] hover:text-[#333333] hover:bg-[#B3B3B3]/50 rounded-lg',
-      description: 'text-[#888888]',
-      price: 'text-[#EB750E]',
-      walletBanner: 'bg-[#e5e8f0] border border-[#333333]',
-      button: 'bg-[#EB750E] hover:bg-[#EB750E]/90 text-[#e5e8f0] font-semibold',
-      profileDropdown: 'bg-[#e5e8f0] border-[#333333]',
-      analyticsCard: 'bg-[#e5e8f0] border border-[#333333]',
-      analyticsValue: 'text-[#EB750E]',
-      analyticsChange: {
-        positive: 'text-[#006633]',
-        negative: 'text-[#FF4444]'
-      },
-      settingsDropdown: 'bg-[#e5e8f0] border-[#333333]'
-    }
-  };
-
-  const currentTheme = isDarkMode ? themeStyles.dark : themeStyles.light;
-
-  // Add font styles to document
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = fonts;
-    document.head.appendChild(style);
-
-    document.documentElement.classList.toggle('dark', isDarkMode);
-    document.body.classList.toggle('theme-dark', isDarkMode);
-    document.body.classList.toggle('theme-light', !isDarkMode);
-    document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-
-    return () => {
-      document.head.removeChild(style);
-      document.body.classList.remove('theme-dark', 'theme-light');
-      document.body.removeAttribute('data-theme');
-    };
-  }, [isDarkMode]);
 
   // Add drag handlers for analytics panel
   const handleDragStart = (e) => {
@@ -318,7 +249,7 @@ function ImageDetail() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         isDarkMode={isDarkMode}
-        toggleTheme={() => setIsDarkMode(!isDarkMode)}
+        toggleTheme={toggleTheme}
         currentTheme={currentTheme}
         isAnalyticsOpen={isAnalyticsOpen}
         setIsAnalyticsOpen={setIsAnalyticsOpen}
